@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CashPal Loan</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* General Styles */
+  body {
+    font-family: 'Poppins', sans-serif;
+    margin:0;
+    padding:0;
+    background: #0f0c29;
+    color:#fff;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  header {
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    padding:20px;
+    text-align:center;
+    font-size:2em;
+    color:#00f0ff;
+    text-shadow:0 0 10px #00f0ff;
+    position:relative;
+    z-index:10;
+  }
+
+  section {
+    padding:50px 20px;
+    max-width:600px;
+    margin: 40px auto;
+    background: rgba(10,10,10,0.6);
+    backdrop-filter: blur(10px);
+    border-radius:20px;
+    box-shadow:0 0 30px #00f0ff77,0 0 60px #ff3d8177 inset;
+  }
+
+  input, select {
+    width:80%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:10px;
+    border:none;
+    outline:none;
+    text-align:center;
+    background:#111;
+    color:#00f0ff;
+    box-shadow:0 0 10px #00f0ff;
+  }
+  input:focus {
+    box-shadow:0 0 20px #ff3d81;
+  }
+
+  button {
+    padding:15px 35px;
+    border:none;
+    border-radius:50px;
+    font-weight:600;
+    font-size:1.1em;
+    background: linear-gradient(90deg,#00f0ff,#ff3d81);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 0 20px #00f0ff,0 0 40px #ff3d81 inset;
+    transition:0.3s;
+    animation: glowPulse 2s infinite alternate;
+    margin-top:10px;
+  }
+  button:hover {
+    transform: scale(1.05);
+  }
+  @keyframes glowPulse {
+    0% {box-shadow:0 0 20px #00f0ff,0 0 40px #ff3d81 inset;}
+    50% {box-shadow:0 0 30px #ff3d81,0 0 60px #00f0ff inset;}
+    100% {box-shadow:0 0 20px #00f0ff,0 0 40px #ff3d81 inset;}
+  }
+
+  #status {
+    margin-top:15px;
+    font-size:1.2em;
+    color:#ff3d81;
+    text-shadow:0 0 5px #ff3d81;
+  }
+
+  /* Floating neon particles background */
+  .particle {
+    position:absolute;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background: #00f0ff;
+    opacity:0.5;
+    animation: float 5s linear infinite;
+  }
+  @keyframes float {
+    0% { transform: translateY(0) translateX(0);}
+    50% { transform: translateY(-50px) translateX(50px);}
+    100% { transform: translateY(0) translateX(0);}
+  }
+</style>
+</head>
+<body>
+
+<header>CashPal - Fast Loans</header>
+
+<!-- Floating particles -->
+<script>
+for(let i=0;i<50;i++){
+    let p=document.createElement('div');
+    p.classList.add('particle');
+    p.style.top=Math.random()*100+"%";
+    p.style.left=Math.random()*100+"%";
+    p.style.width=(2+Math.random()*4)+"px";
+    p.style.height=p.style.width;
+    document.body.appendChild(p);
+}
+</script>
+
+<!-- Step 1: Phone + OTP -->
+<section id="otpSection">
+  <h2>Verify Your Phone</h2>
+  <input type="number" id="phone" placeholder="Enter your phone number"><br>
+  <button onclick="sendOTP()">Send OTP</button>
+  <div id="otpInput" style="margin-top:15px;">
+    <input type="number" id="otp" placeholder="Enter OTP"><br>
+    <button onclick="verifyOTP()">Verify OTP</button>
+  </div>
+</section>
+
+<!-- Step 2: Loan Application -->
+<section id="loanSection">
+  <h2>Apply for a Loan</h2>
+  <label>Loan Amount (¢500 - ¢3000)</label><br>
+  <input type="number" id="loanAmount" min="500" max="3000" value="500"><br>
+  <p>Down Payment (10%): ¢<span id="downPayment">50</span></p>
+
+  <input type="text" id="name" placeholder="Full Name"><br>
+  <input type="email" id="email" placeholder="Email"><br>
+  <label>Have you taken a loan before?</label><br>
+  <select id="prevLoan">
+    <option value="No">No</option>
+    <option value="Yes">Yes</option>
+  </select><br>
+
+  <p>Repayment period: <strong>1 month 2 weeks</strong></p>
+
+  <button onclick="payDownPayment()">Pay Down Payment</button>
+  <div id="status"></div>
+</section>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+  // OTP Logic
+  let generatedOTP;
+  function sendOTP(){
+    const phone = document.getElementById('phone').value;
+    if(phone.length < 9){
+      alert('Enter a valid phone number');
+      return;
+    }
+    generatedOTP = Math.floor(100000 + Math.random() * 900000);
+    alert('OTP sent: ' + generatedOTP); // Demo only
+  }
+
+  function verifyOTP(){
+    const enteredOTP = document.getElementById('otp').value;
+    if(enteredOTP == generatedOTP){
+      alert('Phone verified!');
+    } else {
+      alert('Incorrect OTP. Try again.');
+    }
+  }
+
+  // Update down payment dynamically
+  document.getElementById('loanAmount').addEventListener('input',updateDownPayment);
+  function updateDownPayment(){
+    const amount=parseFloat(document.getElementById('loanAmount').value);
+    const down=(amount*0.10).toFixed(2);
+    document.getElementById('downPayment').innerText=down;
+  }
+
+  // Paystack Down Payment with mailto
+  function payDownPayment(){
+    const amount = parseFloat(document.getElementById('loanAmount').value);
+    if(amount < 500 || amount > 3000){
+      alert('Loan amount must be between ¢500 and ¢3000');
+      return;
+    }
+    const downPayment = amount * 0.10;
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const phone = document.getElementById('phone').value;
+    const prevLoan = document.getElementById('prevLoan').value;
+
+    if(!name || !email){
+      alert('Please enter your name and email');
+      return;
+    }
+
+    let handler = PaystackPop.setup({
+      key: 'pk_live_faf6f9f19d90d6164cbd6b0f6d68db05b36606a8', // Your Paystack key
+      email: email,
+      amount: downPayment * 100,
+      currency: 'GHS',
+      channels: ['mobile_money'],
+      ref: 'CASHPAL_' + Math.floor(Math.random() * 1000000000 + 1),
+      callback: function(response){
+        document.getElementById('status').innerText = "Down payment received. Loan request under review.";
+
+        // Open email client to send info
+        const subject = encodeURIComponent("New CashPal Loan Request");
+        const body = encodeURIComponent(
+          `Customer Name: ${name}\n` +
+          `Customer Email: ${email}\n` +
+          `Phone: ${phone}\n` +
+          `Loan Amount: ¢${amount}\n` +
+          `Previous Loan: ${prevLoan}\n` +
+          `Paystack Reference: ${response.reference}`
+        );
+        window.location.href = `mailto:alexanderpiasahasiamah@gmail.com?subject=${subject}&body=${body}`;
+      },
+      onClose: function(){
+        alert('Payment cancelled');
+      }
+    });
+    handler.openIframe();
+  }
+</script>
+</body>
+</html>
